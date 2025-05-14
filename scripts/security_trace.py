@@ -197,6 +197,14 @@ def main():
         }
     ]
     
+    # 高级攻击链路示例（从数据文件加载）
+    try:
+        with open('data/advanced_attack_events.json', 'r') as f:
+            advanced_attack_events = json.load(f)
+    except FileNotFoundError:
+        print("高级攻击事件数据文件未找到，跳过加载")
+        advanced_attack_events = []
+    
     try:
         # 1. 处理简单演示数据
         tracer.create_attack_path(
@@ -230,11 +238,22 @@ def main():
             tracer.log_security_event(event)
         print("多跳攻击事件已记录")
         
-        # 4. 追踪攻击路径示例
+        # 4. 处理高级攻击链路示例
+        for event in advanced_attack_events:
+            tracer.create_attack_path(
+                event["source_ip"],
+                event["target_ip"],
+                event["attack_type"],
+                datetime.datetime.now().isoformat()
+            )
+            tracer.log_security_event(event)
+        print("高级攻击事件已记录")
+        
+        # 5. 追踪攻击路径示例
         attack_paths = tracer.trace_attack_path("192.168.1.200")
         print("简单攻击路径:", json.dumps(attack_paths, indent=2, ensure_ascii=False))
         
-        # 5. 查询相关安全事件示例
+        # 6. 查询相关安全事件示例
         related_events = tracer.get_related_events("10.0.0.1")
         print("复杂攻击相关事件:", json.dumps(related_events, indent=2, ensure_ascii=False))
     except Exception as e:

@@ -1,0 +1,68 @@
+[
+  {
+    "source_ip": "192.168.2.1",
+    "target_ip": "192.168.2.2",
+    "attack_type": "APT",
+    "severity": "CRITICAL",
+    "details": "Advanced Persistent Threat attack detected",
+    "attacker_identity": "APT_GROUP_1",
+    "attack_tool": "CUSTOM_MALWARE",
+    "target_type": "SERVER",
+    "timestamp": "2023-01-01T00:00:00Z"
+  },
+  {
+    "source_ip": "192.168.2.2",
+    "target_ip": "192.168.2.3",
+    "attack_type": "LATERAL_MOVEMENT",
+    "severity": "HIGH",
+    "details": "Lateral movement after initial compromise",
+    "attacker_identity": "APT_GROUP_1",
+    "attack_tool": "POWERSHELL",
+    "target_type": "WORKSTATION",
+    "timestamp": "2023-01-01T01:00:00Z"
+  },
+  {
+    "source_ip": "192.168.2.3",
+    "target_ip": "192.168.2.4",
+    "attack_type": "DATA_EXFILTRATION",
+    "severity": "CRITICAL",
+    "details": "Sensitive data exfiltration detected",
+    "attacker_identity": "APT_GROUP_1",
+    "attack_tool": "CUSTOM_SCRIPT",
+    "target_type": "DATABASE",
+    "timestamp": "2023-01-01T02:00:00Z"
+  },
+  {
+    "source_ip": "192.168.2.4",
+    "target_ip": "192.168.2.5",
+    "attack_type": "RANSOMWARE",
+    "severity": "CRITICAL",
+    "details": "Ransomware attack detected",
+    "attacker_identity": "APT_GROUP_2",
+    "attack_tool": "RANSOMWARE_TOOL",
+    "target_type": "SERVER",
+    "timestamp": "2023-01-01T03:00:00Z"
+  },
+  {
+    "source_ip": "192.168.2.5",
+    "target_ip": "192.168.2.6",
+    "attack_type": "LATERAL_MOVEMENT",
+    "severity": "HIGH",
+    "details": "Lateral movement after initial compromise",
+    "attacker_identity": "APT_GROUP_2",
+    "attack_tool": "POWERSHELL",
+    "target_type": "WORKSTATION",
+    "timestamp": "2023-01-01T04:00:00Z"
+  },
+  {
+    "source_ip": "192.168.2.6",
+    "target_ip": "192.168.2.7",
+    "attack_type": "DATA_EXFILTRATION",
+    "severity": "CRITICAL",
+    "details": "Sensitive data exfiltration detected",
+    "attacker_identity": "APT_GROUP_2",
+    "attack_tool": "CUSTOM_SCRIPT",
+    "target_type": "DATABASE",
+    "timestamp": "2023-01-01T05:00:00Z"
+  }
+] 
