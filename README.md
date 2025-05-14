@@ -1,141 +1,155 @@
-# Neo4j-ELK 集成环境
+# 安全事件图谱分析系统
 
-这是一个集成了 Neo4j 和 ELK Stack 的开发环境，适用于服务器安全溯源和攻击路径追踪的知识图谱课题。
+基于 ELK Stack 和 Neo4j 的安全事件分析与攻击路径追踪系统。
 
----
+## 系统架构
 
-## 一、架构总览
+系统由以下组件构成：
 
-本项目采用 Docker Compose 一键部署 Neo4j、Elasticsearch、Kibana、Logstash 四大核心组件，结合 Python 脚本实现安全事件的采集、存储、分析与可视化。
+- **Elasticsearch**: 安全事件日志存储与分析
+- **Logstash**: 数据收集、清洗与转换
+- **Kibana**: 数据可视化
+- **Neo4j**: 攻击路径图谱存储
 
-### 架构图（文本版）
+## 功能特性
 
+### 1. 数据收集与处理
+- 多源数据收集（Beats、TCP、HTTP）
+- 实时数据清洗与转换
+- 地理位置信息解析
+- 用户代理解析
+- 事件类型标准化
+
+### 2. 安全事件分析
+- 攻击类型识别
+- 严重程度分类
+- 响应状态分析
+- 地理位置分析
+
+### 3. 攻击路径追踪
+- 攻击源追踪
+- 攻击路径可视化
+- 多跳攻击分析
+- 攻击链还原
+
+## 快速开始
+
+### 环境要求
+- Docker
+- Docker Compose
+- Python 3.8+
+
+### 安装步骤
+
+1. 克隆仓库：
+```bash
+git clone <repository-url>
+cd sec-graph-elk
 ```
-+-------------------+         +-------------------+
-|                   |         |                   |
-|   攻击事件采集脚本|  <----> |    Neo4j 图数据库  |
-| (security_trace.py)|         |   (攻击路径建模)   |
-+-------------------+         +-------------------+
-         |                                 ^
-         v                                 |
-+-------------------+         +-------------------+
-|                   |         |                   |
-|   Elasticsearch   | <-----> |      Logstash     |
-| (安全事件日志存储) |         | (日志收集/转发)    |
-+-------------------+         +-------------------+
-         |
-         v
-+-------------------+
-|      Kibana       |
-| (安全事件可视化)  |
-+-------------------+
+
+2. 配置环境变量（可选）：
+```bash
+cp .env.example .env
+# 编辑 .env 文件设置必要的环境变量
 ```
 
----
-
-## 二、各组件说明
-
-### 1. Neo4j
-- 作用：存储服务器、攻击者、攻击路径等知识图谱结构化数据。
-- 端口：7474 (HTTP), 7687 (Bolt)
-- 连接方式：Python 通过 `neo4j` 驱动，使用 Bolt 协议连接。
-- 典型用法：
-  - 创建攻击路径：MERGE (source:Server)-[ATTACKED]->(target:Server)
-  - 查询攻击链路：MATCH path = (source)-[ATTACKED*]->(target) RETURN path
-
-### 2. Elasticsearch
-- 作用：存储安全事件日志，支持全文检索和复杂查询。
-- 端口：9200
-- 连接方式：Python 通过 `elasticsearch` 驱动，使用 HTTP 认证连接。
-- 典型用法：
-  - 写入事件：client.index(index=..., document=...)
-  - 查询事件：client.search(index=..., body=...)
-
-### 3. Logstash
-- 作用：日志收集、格式化、转发到 Elasticsearch。
-- 端口：5044
-- 典型用法：监听 5044 端口，接收日志并写入 ES。
-
-### 4. Kibana
-- 作用：安全事件的可视化分析。
-- 端口：5601
-- 典型用法：通过 Web UI 查询、展示 Elasticsearch 中的安全事件。
-
----
-
-## 三、数据流说明
-
-1. **攻击事件采集脚本**（security_trace.py）
-   - 记录攻击事件到 Elasticsearch
-   - 在 Neo4j 中建立攻击路径
-   - 支持攻击路径追踪与事件检索
-
-2. **Logstash**
-   - 可接收外部日志（如 Filebeat、系统日志），转发到 Elasticsearch
-
-3. **Kibana**
-   - 通过 Web 页面可视化安全事件、攻击链路
-
----
-
-## 四、快速开始
-
-1. 启动所有服务：
+3. 启动服务：
 ```bash
 docker-compose up -d
 ```
 
-2. 安装 Python 依赖：
+4. 运行测试数据生成器：
 ```bash
-pip install -r requirements.txt
+python scripts/generate_test_events.py
 ```
 
-3. 运行安全溯源示例脚本：
+### 访问服务
+
+- Kibana: http://localhost:5601
+- Neo4j Browser: http://localhost:7474
+- Logstash API: http://localhost:9600
+
+## 配置说明
+
+### Logstash 配置
+
+Logstash 提供三种数据输入方式：
+
+1. **Beats 输入** (端口 5044)
+   - 用于接收 Filebeat 等 Beats 系列工具发送的日志
+
+2. **TCP 输入** (端口 5000)
+   - 用于接收其他安全设备通过 TCP 发送的 JSON 格式日志
+
+3. **HTTP 输入** (端口 8080)
+   - 用于接收通过 HTTP 接口发送的 JSON 格式日志
+
+### 数据处理流程
+
+1. **数据收集**
+   - 接收来自不同来源的安全事件数据
+   - 支持多种数据格式和协议
+
+2. **数据清洗**
+   - 时间戳标准化
+   - 字段格式统一
+   - 无效数据过滤
+
+3. **数据丰富**
+   - IP 地理位置解析
+   - 用户代理解析
+   - 事件类型标准化
+
+4. **数据输出**
+   - 写入 Elasticsearch 进行存储和分析
+   - 写入 Neo4j 构建攻击关系图
+   - 错误日志记录
+
+## 开发指南
+
+### 添加新的数据处理规则
+
+1. 编辑 `config/logstash/pipeline/advanced_logstash.conf`
+2. 在 filter 部分添加新的处理规则
+3. 重启 Logstash 服务
+
+### 测试数据生成
+
+使用 `scripts/generate_test_events.py` 生成测试数据：
+
 ```bash
-python scripts/security_trace.py
+python scripts/generate_test_events.py
 ```
 
----
+## 监控与维护
 
-## 五、主要脚本说明
+### 服务健康检查
 
-### scripts/security_trace.py
-- 连接 Neo4j 和 Elasticsearch
-- 记录攻击事件到 ES
-- 在 Neo4j 中建立攻击路径
-- 查询攻击路径和相关事件
-- 详细注释见脚本内部
-
----
-
-## 六、默认账号密码
-
-- Neo4j: 用户名 neo4j / 密码 neo4j123456
-- Elasticsearch/Kibana: 用户名 elastic / 密码 elastic123456
-
----
-
-## 七、注意事项
-- 所有服务均为开发环境配置，生产环境请修改默认密码。
-- Neo4j/ES 数据均持久化到本地 volume。
-- 如需自定义配置，请修改 config/ 目录下相关文件。
-
----
-
-## 八、环境变量配置
-
-为了方便项目复制和复现，本项目使用环境变量配置连接信息。你可以通过以下方式配置：
-
-1. 在项目根目录创建 `.env` 文件，内容如下：
-```
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=neo4j123456
-ES_HOST=http://localhost:9200
-ES_USER=elastic
-ES_PASSWORD=elastic123456
+```bash
+docker-compose ps
 ```
 
-2. 修改 `docker-compose.yml` 中的服务配置，确保服务地址与 `.env` 文件一致。
+### 日志查看
 
-3. 运行脚本时，环境变量会自动加载，无需硬编码 IP 地址。 
+```bash
+# Logstash 日志
+docker-compose logs -f logstash
+
+# Elasticsearch 日志
+docker-compose logs -f elasticsearch
+
+# Neo4j 日志
+docker-compose logs -f neo4j
+```
+
+## 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
+
+## 许可证
+
+MIT License 

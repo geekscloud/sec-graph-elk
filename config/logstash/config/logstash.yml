@@ -1,0 +1,38 @@
+# Logstash 主配置文件
+
+# 节点名称
+node.name: "security-logstash"
+
+# 数据目录
+path.data: /usr/share/logstash/data
+
+# 配置目录
+path.config: /usr/share/logstash/pipeline
+
+# 日志目录
+path.logs: /var/log/logstash
+
+# 管道配置
+pipeline:
+  batch:
+    size: 125
+    delay: 50
+  workers: 2
+
+# 监控设置
+monitoring:
+  enabled: true
+
+# HTTP API 设置
+http.host: "0.0.0.0"
+http.port: 9600
+
+# 队列设置
+queue.type: persisted
+queue.max_bytes: 1gb
+
+# 性能调优
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+xpack.monitoring.elasticsearch.username: ${ES_USER:-elastic}
+xpack.monitoring.elasticsearch.password: ${ES_PASSWORD:-elastic123456} 

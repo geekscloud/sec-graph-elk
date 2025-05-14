@@ -46,15 +46,21 @@ services:
       - neo4j_elk_network
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.17.0
+    build:
+      context: .
+      dockerfile: Dockerfile.logstash
     ports:
-      - "5044:5044"
+      - "5044:5044"  # Beats
+      - "5000:5000"  # TCP
+      - "8080:8080"  # HTTP
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=${ES_USER:-elastic}
       - ELASTICSEARCH_PASSWORD=${ES_PASSWORD:-elastic123456}
     volumes:
       - ./config/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./config/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - logstash_data:/usr/share/logstash/data
     depends_on:
       - elasticsearch
     networks:
@@ -66,4 +72,5 @@ networks:
 
 volumes:
   neo4j_data:
-  elasticsearch_data: 
+  elasticsearch_data:
+  logstash_data: 
