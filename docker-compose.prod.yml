@@ -1,73 +1,131 @@
-version: '3'
+version: '3.8'
 
 services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic123456}
+      - xpack.security.enabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elk
+    restart: always
+
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic123456}
+      - xpack.security.enabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
+    networks:
+      - elk
+    restart: always
+
+  es03:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic123456}
+      - xpack.security.enabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata03:/usr/share/elasticsearch/data
+    networks:
+      - elk
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es01:9200,http://es02:9200,http://es03:9200
+      - ELASTICSEARCH_USERNAME=${ES_USER:-elastic}
+      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD:-elastic123456}
+    ports:
+      - 5601:5601
+    depends_on:
+      - es01
+      - es02
+      - es03
+    networks:
+      - elk
+    restart: always
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es01:9200,http://es02:9200,http://es03:9200
+      - ELASTICSEARCH_USERNAME=${ES_USER:-elastic}
+      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD:-elastic123456}
+    volumes:
+      - ./config/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - 5044:5044
+    depends_on:
+      - es01
+      - es02
+      - es03
+    networks:
+      - elk
+    restart: always
+
+  # Neo4j 集群（企业版支持，社区版可用单节点+只读副本）
   neo4j:
     image: neo4j:4.4
-    ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
     environment:
       - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-neo4j123456}
       - NEO4J_dbms_memory_pagecache_size=2G
       - NEO4J_dbms_memory_heap_initial__size=2G
       - NEO4J_dbms_memory_heap_max__size=2G
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*
-      - NEO4J_dbms_security_auth_enabled=true
+      - NEO4J_dbms_mode=CORE
+      - NEO4J_causal__clustering_expected_core_cluster_size=3
+      - NEO4J_causal__clustering_initial_discovery_members=neo4j1:5000,neo4j2:5000,neo4j3:5000
+    ports:
+      - 7474:7474
+      - 7687:7687
     volumes:
       - neo4j_data:/data
     networks:
-      - neo4j_elk_network
+      - elk
     restart: always
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    environment:
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-      - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic123456}
-      - xpack.security.enabled=true
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - neo4j_elk_network
-    restart: always
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.0
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=${ES_USER:-elastic}
-      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD:-elastic123456}
-    depends_on:
-      - elasticsearch
-    networks:
-      - neo4j_elk_network
-    restart: always
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.17.0
-    ports:
-      - "5044:5044"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=${ES_USER:-elastic}
-      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD:-elastic123456}
-    volumes:
-      - ./config/logstash/pipeline:/usr/share/logstash/pipeline
-    depends_on:
-      - elasticsearch
-    networks:
-      - neo4j_elk_network
-    restart: always
-
-networks:
-  neo4j_elk_network:
-    driver: bridge
 
 volumes:
+  esdata01:
+  esdata02:
+  esdata03:
   neo4j_data:
-  elasticsearch_data: 
+
+networks:
+  elk:
+    driver: bridge
