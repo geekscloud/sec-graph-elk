@@ -138,8 +138,8 @@ class SecurityTracer:
 def main():
     tracer = SecurityTracer()
     
-    # 示例：记录一个攻击事件
-    attack_event = {
+    # 简单演示数据
+    simple_attack_event = {
         "source_ip": "192.168.1.100",
         "target_ip": "192.168.1.200",
         "attack_type": "SQL_INJECTION",
@@ -147,26 +147,60 @@ def main():
         "details": "Attempted SQL injection attack detected"
     }
     
+    # 复杂演示数据
+    complex_attack_events = [
+        {
+            "source_ip": "10.0.0.1",
+            "target_ip": "10.0.0.2",
+            "attack_type": "XSS",
+            "severity": "MEDIUM",
+            "details": "Cross-site scripting attack detected on login page"
+        },
+        {
+            "source_ip": "10.0.0.3",
+            "target_ip": "10.0.0.4",
+            "attack_type": "DDoS",
+            "severity": "CRITICAL",
+            "details": "Distributed Denial of Service attack from multiple sources"
+        },
+        {
+            "source_ip": "10.0.0.5",
+            "target_ip": "10.0.0.6",
+            "attack_type": "RCE",
+            "severity": "HIGH",
+            "details": "Remote Code Execution attempt via vulnerable API"
+        }
+    ]
+    
     try:
-        # 1. 在 Neo4j 中创建攻击路径
+        # 1. 处理简单演示数据
         tracer.create_attack_path(
-            attack_event["source_ip"],
-            attack_event["target_ip"],
-            attack_event["attack_type"],
+            simple_attack_event["source_ip"],
+            simple_attack_event["target_ip"],
+            simple_attack_event["attack_type"],
             datetime.datetime.now().isoformat()
         )
-        print("攻击路径已创建")
+        tracer.log_security_event(simple_attack_event)
+        print("简单攻击事件已记录")
         
-        # 2. 记录事件到 Elasticsearch
-        tracer.log_security_event(attack_event)
+        # 2. 处理复杂演示数据
+        for event in complex_attack_events:
+            tracer.create_attack_path(
+                event["source_ip"],
+                event["target_ip"],
+                event["attack_type"],
+                datetime.datetime.now().isoformat()
+            )
+            tracer.log_security_event(event)
+        print("复杂攻击事件已记录")
         
-        # 3. 追踪攻击路径
+        # 3. 追踪攻击路径示例
         attack_paths = tracer.trace_attack_path("192.168.1.200")
-        print("攻击路径:", json.dumps(attack_paths, indent=2, ensure_ascii=False))
+        print("简单攻击路径:", json.dumps(attack_paths, indent=2, ensure_ascii=False))
         
-        # 4. 查询相关安全事件
-        related_events = tracer.get_related_events("192.168.1.100")
-        print("相关事件:", json.dumps(related_events, indent=2, ensure_ascii=False))
+        # 4. 查询相关安全事件示例
+        related_events = tracer.get_related_events("10.0.0.1")
+        print("复杂攻击相关事件:", json.dumps(related_events, indent=2, ensure_ascii=False))
     except Exception as e:
         print(f"执行过程中出错: {str(e)}")
 
