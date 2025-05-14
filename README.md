@@ -69,6 +69,55 @@ python scripts/generate_test_events.py
 - Neo4j Browser: http://localhost:7474
 - Logstash API: http://localhost:9600
 
+## 数据流程说明
+
+### 测试数据生成与处理流程
+
+1. `generate_test_events.py` 生成测试数据后，通过 TCP 发送到 Logstash（端口 5000）
+2. Logstash 接收到数据后，会进行以下处理：
+   - 数据清洗和转换
+   - 添加地理位置信息
+   - 解析用户代理
+   - 标准化事件类型
+3. 然后 Logstash 会同时将数据输出到两个地方：
+   - Elasticsearch：存储详细的事件日志
+   - Neo4j：构建攻击关系图
+
+数据流程图：
+```
+generate_test_events.py
+        ↓ (TCP 端口 5000)
+    Logstash
+        ↓
+    ┌─────┴─────┐
+    ↓           ↓
+Elasticsearch  Neo4j
+(事件日志)    (攻击图谱)
+```
+
+### 验证数据写入
+
+1. 查看 Elasticsearch 中的数据：
+```bash
+curl -X GET "http://localhost:9200/security-events-*/_search?pretty" -u elastic:elastic123456
+```
+
+2. 在 Neo4j 浏览器中查看攻击关系：
+```cypher
+MATCH (source:Server)-[r:ATTACKED]->(target:Server)
+RETURN source, r, target
+LIMIT 10
+```
+
+3. 在 Kibana 中查看可视化数据：
+   - 访问 http://localhost:5601
+   - 创建索引模式 `security-events-*`
+   - 查看安全事件仪表板
+
+### 自定义测试数据
+
+如需修改数据生成的方式或内容，可以编辑 `generate_test_events.py` 中的 `generate_event()` 函数。
+
 ## 配置说明
 
 ### Logstash 配置
