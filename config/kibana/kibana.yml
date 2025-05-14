@@ -1,0 +1,29 @@
+server.name: kibana
+server.host: "0.0.0.0"
+elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+elasticsearch.username: elastic
+elasticsearch.password: elastic123456
+
+# 安全配置
+xpack.security.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters_long"
+xpack.reporting.encryptionKey: "something_at_least_32_characters_long"
+xpack.security.encryptionKey: "something_at_least_32_characters_long"
+
+# 国际化配置
+i18n.locale: "zh-CN"
+
+# 监控配置
+monitoring.ui.container.elasticsearch.enabled: true
+
+# 日志配置
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /usr/share/kibana/logs/kibana.log
+      layout:
+        type: pattern
+  root:
+    appenders: [file]
+    level: info 
