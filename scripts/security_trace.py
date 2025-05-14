@@ -172,6 +172,31 @@ def main():
         }
     ]
     
+    # 多跳攻击示例
+    multi_hop_attack_events = [
+        {
+            "source_ip": "172.16.0.1",
+            "target_ip": "172.16.0.2",
+            "attack_type": "PHISHING",
+            "severity": "MEDIUM",
+            "details": "Phishing attack targeting user credentials"
+        },
+        {
+            "source_ip": "172.16.0.2",
+            "target_ip": "172.16.0.3",
+            "attack_type": "LATERAL_MOVEMENT",
+            "severity": "HIGH",
+            "details": "Lateral movement after initial compromise"
+        },
+        {
+            "source_ip": "172.16.0.3",
+            "target_ip": "172.16.0.4",
+            "attack_type": "DATA_EXFILTRATION",
+            "severity": "CRITICAL",
+            "details": "Sensitive data exfiltration detected"
+        }
+    ]
+    
     try:
         # 1. 处理简单演示数据
         tracer.create_attack_path(
@@ -194,11 +219,22 @@ def main():
             tracer.log_security_event(event)
         print("复杂攻击事件已记录")
         
-        # 3. 追踪攻击路径示例
+        # 3. 处理多跳攻击示例
+        for event in multi_hop_attack_events:
+            tracer.create_attack_path(
+                event["source_ip"],
+                event["target_ip"],
+                event["attack_type"],
+                datetime.datetime.now().isoformat()
+            )
+            tracer.log_security_event(event)
+        print("多跳攻击事件已记录")
+        
+        # 4. 追踪攻击路径示例
         attack_paths = tracer.trace_attack_path("192.168.1.200")
         print("简单攻击路径:", json.dumps(attack_paths, indent=2, ensure_ascii=False))
         
-        # 4. 查询相关安全事件示例
+        # 5. 查询相关安全事件示例
         related_events = tracer.get_related_events("10.0.0.1")
         print("复杂攻击相关事件:", json.dumps(related_events, indent=2, ensure_ascii=False))
     except Exception as e:
