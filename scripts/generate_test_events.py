@@ -248,9 +248,28 @@ def wait_for_logstash(max_attempts=30, delay=2):
                 logger.error("Logstash 服务未就绪，请检查服务状态")
                 return False
 
+def get_attack_interval():
+    """获取用户输入的攻击间隔（毫秒）"""
+    try:
+        interval = input("请输入攻击间隔（毫秒）[默认50毫秒]: ").strip()
+        if not interval:
+            return 50  # 默认值
+        interval = int(interval)
+        if interval < 0:
+            logger.warning("间隔不能为负数，使用默认值50毫秒")
+            return 50
+        return interval
+    except ValueError:
+        logger.warning("输入无效，使用默认值50毫秒")
+        return 50
+
 def main():
     """主函数：持续生成和发送事件"""
     logger.info(f"开始生成测试事件... (Logstash: {LOGSTASH_HOST}:{LOGSTASH_PORT})")
+    
+    # 获取攻击间隔
+    attack_interval_ms = get_attack_interval()
+    logger.info(f"攻击间隔设置为: {attack_interval_ms}±5毫秒")
     
     # 等待 Logstash 服务就绪
     if not wait_for_logstash():
@@ -269,8 +288,9 @@ def main():
                 time.sleep(5)
                 continue
             
-            # 随机等待
-            time.sleep(random.uniform(0.5, 2))
+            # 根据设置的间隔随机等待
+            interval_sec = (attack_interval_ms + random.uniform(-5, 5)) / 1000.0
+            time.sleep(max(0.001, interval_sec))  # 确保间隔至少为1毫秒
             
     except KeyboardInterrupt:
         logger.info("停止生成测试事件")
