@@ -1,6 +1,11 @@
 # 安全事件图谱分析系统
 
-> **重要提示**：在使用本系统前，请确保修改 `.env` 文件中的代理配置为您自己的配置，特别是 `LOGSTASH_HOST` 和 `LOGSTASH_TCP_PORT` 这两个参数。使用错误的配置可能导致系统无法正常构建和运行。
+> **重要提示**：在使用本系统前，请务必修改`.env`文件中的以下两个代理配置为您自己的配置：
+> ```
+> HTTP_PROXY=http://your-proxy-server:port
+> HTTPS_PROXY=http://your-proxy-server:port
+> ```
+> 使用错误的代理配置将导致系统无法正常连接网络和运行。
 
 基于 ELK Stack 和 Neo4j 的安全事件分析与攻击路径追踪系统。
 
