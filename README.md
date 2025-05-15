@@ -47,7 +47,7 @@ git clone <repository-url>
 cd sec-graph-elk
 ```
 
-2. 配置环境变量（可选）：
+2. 配置环境变量：
 ```bash
 cp .env.example .env
 # 编辑 .env 文件设置必要的环境变量
@@ -69,11 +69,24 @@ python scripts/generate_test_events.py
 - Neo4j Browser: http://localhost:7474
 - Logstash API: http://localhost:9600
 
+### 端口配置
+
+系统使用以下默认端口，可通过环境变量修改：
+
+- **Logstash**:
+  - Beats 输入: ${LOGSTASH_BEATS_PORT:-5044}
+  - TCP 输入: ${LOGSTASH_TCP_PORT:-1514}
+  - HTTP 输入: ${LOGSTASH_HTTP_PORT:-8080}
+
+- **Elasticsearch**: 9200
+- **Kibana**: 5601
+- **Neo4j**: 7474 (HTTP), 7687 (Bolt)
+
 ## 数据流程说明
 
 ### 测试数据生成与处理流程
 
-1. `generate_test_events.py` 生成测试数据后，通过 TCP 发送到 Logstash（端口 5000）
+1. `generate_test_events.py` 生成测试数据后，通过 TCP 发送到 Logstash（端口 1514）
 2. Logstash 接收到数据后，会进行以下处理：
    - 数据清洗和转换
    - 添加地理位置信息
@@ -86,7 +99,7 @@ python scripts/generate_test_events.py
 数据流程图：
 ```
 generate_test_events.py
-        ↓ (TCP 端口 5000)
+        ↓ (TCP 端口 1514)
     Logstash
         ↓
     ┌─────┴─────┐
@@ -124,13 +137,13 @@ LIMIT 10
 
 Logstash 提供三种数据输入方式：
 
-1. **Beats 输入** (端口 5044)
+1. **Beats 输入** (端口 ${LOGSTASH_BEATS_PORT:-5044})
    - 用于接收 Filebeat 等 Beats 系列工具发送的日志
 
-2. **TCP 输入** (端口 5000)
+2. **TCP 输入** (端口 ${LOGSTASH_TCP_PORT:-1514})
    - 用于接收其他安全设备通过 TCP 发送的 JSON 格式日志
 
-3. **HTTP 输入** (端口 8080)
+3. **HTTP 输入** (端口 ${LOGSTASH_HTTP_PORT:-8080})
    - 用于接收通过 HTTP 接口发送的 JSON 格式日志
 
 ### 数据处理流程

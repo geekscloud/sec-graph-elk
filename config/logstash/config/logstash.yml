@@ -21,7 +21,7 @@ pipeline:
 
 # 监控设置
 monitoring:
-  enabled: true
+  enabled: false
 
 # HTTP API 设置
 http.host: "0.0.0.0"
@@ -32,7 +32,4 @@ queue.type: persisted
 queue.max_bytes: 1gb
 
 # 性能调优
-xpack.monitoring.enabled: true
-xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
-xpack.monitoring.elasticsearch.username: ${ES_USER:-elastic}
-xpack.monitoring.elasticsearch.password: ${ES_PASSWORD:-elastic123456} 
+xpack.monitoring.enabled: false 
